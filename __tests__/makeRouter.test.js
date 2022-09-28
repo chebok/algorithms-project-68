@@ -1,24 +1,31 @@
 import makeRouter from '../dist/makeRouter';
 
 const routes = [
-    {
-      // Роутер используется как часть на конкретном сайте, поэтому роутеру нужно знать лишь про сами маршруты на сайте
-      // не учитываем протокол, хост и т. д.
-      path: '/courses', // маршрут
-      handler: () => 'courses!', // обработчик
-    },
-    {
-      path: '/courses/basics',
-      handler: () => 'basics',
-    },
+  {
+    path: '/courses/:id',
+    handler: () => 'course!',
+  },
+  {
+    path: '/courses/:course_id/exercises/:id',
+    handler: () => 'exercise!',
+  },
 ];
 
 
-test('existing path', () => {
+test('dynamic path1', () => {
   const router = makeRouter(routes);
-  const path = '/courses';
-  const handler = router.serve(path);
-  expect(handler()).toEqual('courses!')
+  const path = '/courses/php_trees';
+  const route = router.serve(path);
+  expect(route.handler()).toEqual('course!');
+  expect(route.params.id).toEqual('php_trees');
+});
+
+test('dynamic path2', () => {
+  const router = makeRouter(routes);
+  const path = '/courses/js/exercises/string';
+  const route = router.serve(path);
+  expect(route.handler()).toEqual('exercise!');
+  expect(route.params.id).toEqual('string');
 });
 
 test('not existing path', () => {

@@ -1,25 +1,42 @@
 export default class Router {
-    constructor(routes) {
-        this.routes = routes;
+    constructor(routers) {
+        this.routes = routers.map((router) => {
+            const params = router.path.match(/(?<=:)(\w+)/g);
+            if (params === null) {
+                return { path: router.path.replace(/(:\w+)/g, '(\\w+)'),
+                    handler: router.handler,
+                };
+            }
+            else {
+                return {
+                    path: router.path.replace(/(:\w+)/g, '(\\w+)'),
+                    handler: router.handler,
+                    params: params,
+                };
+            }
+        });
     }
     serve(path) {
-        let result = {};
-        const routeMatch = this.routes.find((route) => {
-            const regRoute = route.path.replace(/(:\w+)/g, '(\\w+)');
-            const matches = path.match(new RegExp(`${regRoute}$`));
-            if (matches === null) {
-                return false;
-            }
-            const init = {};
-            const params = route.path.match(/(?<=:)(\w+)/g)?.reduce((acc, param, index) => {
-                return { ...acc, [param]: matches[index + 1] };
-            }, init);
-            result = { path: route.path, handler: route.handler, params };
-            return true;
-        });
+        const routeMatch = this.routes.find((route) => path.match(new RegExp(`${route.path}$`)));
         if (!routeMatch) {
             throw new Error('route not found');
         }
-        return result;
+        const matches = path.match(new RegExp(`${routeMatch.path}$`));
+        if (!matches) {
+            throw new Error('route not found');
+        }
+        if (!routeMatch.params) {
+            return { path: routeMatch.path, handler: routeMatch.handler };
+        }
+        const params = {};
+        routeMatch.params.forEach((param, index) => {
+            const value = matches[index + 1];
+            if (!value) {
+                return;
+            }
+            params[param] = value;
+        });
+        console.log(params);
+        return { path: routeMatch.path, handler: routeMatch.handler, params };
     }
 }

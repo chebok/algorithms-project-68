@@ -6,11 +6,25 @@ const routes = [
     handler: () => 'course!',
   },
   {
+    path: '/user/:id',
+    handler: () => 'user!',
+  },
+  {
+    path: '/user',
+    handler: () => 'all users!',
+  },
+  {
     path: '/courses/:course_id/exercises/:id',
     handler: () => 'exercise!',
   },
 ];
 
+test('static path1', () => {
+  const router = makeRouter(routes);
+  const path = '/user';
+  const route = router.serve(path);
+  expect(route.handler()).toEqual('all users!');
+});
 
 test('dynamic path1', () => {
   const router = makeRouter(routes);

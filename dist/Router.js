@@ -1,26 +1,14 @@
+import routerToDyno from "./routerToDyno";
+import insertRouterIntoTree from "./insertRouterIntoTree";
+import findInPrefixTree from "./findInPrefixTree";
 export default class Router {
     constructor(routers) {
-        this.routes = routers.map((router) => {
-            const params = router.path.match(/(?<=:)(\w+)/g);
-            if (params === null) {
-                return { path: router.path.replace(/(:\w+)/g, '(\\w+)'),
-                    handler: router.handler,
-                };
-            }
-            else {
-                return {
-                    path: router.path.replace(/(:\w+)/g, '(\\w+)'),
-                    handler: router.handler,
-                    params: params,
-                };
-            }
-        });
+        this.routesTree = {};
+        const dynoRouters = routers.map(routerToDyno);
+        dynoRouters.forEach((dynoRouter) => insertRouterIntoTree(dynoRouter, this.routesTree));
     }
     serve(path) {
-        const routeMatch = this.routes.find((route) => path.match(new RegExp(`${route.path}$`)));
-        if (!routeMatch) {
-            throw new Error('route not found');
-        }
+        const routeMatch = findInPrefixTree(path, this.routesTree);
         const matches = path.match(new RegExp(`${routeMatch.path}$`));
         if (!matches) {
             throw new Error('route not found');
